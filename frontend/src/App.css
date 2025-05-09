@@ -1,10 +1,13 @@
 .auth-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 2rem;
-  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   background-color: #1a1a1a;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 form {
@@ -118,4 +121,269 @@ button:disabled:hover {
 
 .input-group input {
   margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 450px;
+  width: 90%;
+  padding: 30px;
+  border-radius: 20px;
+  position: relative;
+  background-color: #1a1a1a;
+  color: #fff;
+  border: 1px solid #333;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 30px;
+  color: #00bfff;
+  margin-bottom: 15px;
+}
+
+.title::before,
+.title::after {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  left: 0px;
+  background-color: #00bfff;
+}
+
+.title::after {
+  animation: pulse 1s linear infinite;
+}
+
+.message, 
+.signin {
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.signin {
+  text-align: center;
+}
+
+.signin button {
+  color: #00bfff;
+  background: none;
+  border: none;
+  font-size: 14.5px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.signin button:hover {
+  text-decoration: underline;
+  color: royalblue;
+}
+
+.flex {
+  display: flex;
+  width: 100%;
+  gap: 6px;
+}
+
+.form label {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin-right: 30px;  /* Add space for icons */
+}
+
+.form label .input {
+  background-color: #333;
+  color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 15px 05px 15px;
+  outline: 0;
+  border: 1px solid rgba(105, 105, 105, 0.397);
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.form label .input + span {
+  color: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  left: 15px;
+  top: 5px;
+  font-size: 0.9em;
+  cursor: text;
+  transition: 0.3s ease;
+}
+
+.form label .input:placeholder-shown + span {
+  top: 12.5px;
+  font-size: 0.9em;
+}
+
+.form label .input:focus + span,
+.form label .input:valid + span {
+  color: #00bfff;
+  top: 0px;
+  font-size: 0.7em;
+  font-weight: 600;
+}
+
+.submit {
+  border: none;
+  outline: none;
+  padding: 10px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  transform: .3s ease;
+  background-color: #00bfff;
+  cursor: pointer;
+  width: 100%;
+  margin: 0;
+}
+
+.submit:hover {
+  background-color: #00bfff96;
+}
+
+.error-message {
+  color: #ff4646;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  padding-left: 10px;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;     /* Move back inside input */
+  top: 12px;       /* Align with input text */
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.form label .input[type="password"],
+.form label .input[type="text"] {
+  padding-right: 35px;  /* Add space for password toggle */
+}
+
+.info-icon {
+  position: absolute;
+  right: -25px;  /* Move outside the input field */
+  top: 2px;     /* Align with top of input */
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: help;
+  font-size: 12px;  /* Smaller icon size */
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon:hover .tooltip {
+  display: block;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  right: 30px;   /* Adjusted position */
+  top: -5px;
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  width: 200px;
+  text-align: left;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 3;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 10px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent transparent #333;
+}
+
+.registration-dialog {
+  text-align: center;
+  padding: 2rem;
+  background-color: #242424;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+.registration-dialog h2 {
+  color: #00bfff;
+  margin-bottom: 1rem;
+}
+
+.registration-dialog p {
+  margin-bottom: 1.5rem;
+  color: #fff;
+  line-height: 1.6;
+}
+
+.registration-dialog button {
+  background-color: #00bfff;
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.registration-dialog button:hover {
+  background-color: #00bfff96;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -21,6 +21,8 @@ function App() {
     email: '',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false)
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
 
   const validateName = (name) => {
     if (name.length < 4) {
@@ -48,6 +50,13 @@ function App() {
       return 'Please enter a valid email address';
     }
     return '';
+  };
+
+  // Add validation info messages
+  const validationInfo = {
+    name: "Name must be at least 4 characters long",
+    email: "Enter a valid email address (e.g., user@example.com)",
+    password: "Password must:\n- Be at least 6 characters long\n- Contain at least one number\n- Contain at least one letter"
   };
 
   useEffect(() => {
@@ -129,8 +138,7 @@ function App() {
                 setWelcomeName(response.data.user.name);
                 setShowWelcome(true);
             } else {
-                alert('Registration successful! Please login.');
-                setIsLogin(true);
+                setShowRegistrationSuccess(true); // Show registration success dialog
             }
         } else {
             setError(response.data.message);
@@ -178,86 +186,130 @@ function App() {
 
   return (
     <div className="auth-container">
-      {showWelcome ? (
+      {showRegistrationSuccess ? (
+        <div className="registration-dialog">
+          <h2>Registration Successful! 🎉</h2>
+          <p>Your account has been created successfully.<br/>Please login to continue.</p>
+          <button onClick={() => {
+            setShowRegistrationSuccess(false);
+            setIsLogin(true);
+            setFormData({
+              email: '',
+              password: '',
+              confirmPassword: '',
+              name: ''
+            });
+          }}>
+            Proceed to Login
+          </button>
+        </div>
+      ) : showWelcome ? (
         <div className="welcome-dialog">
           <h2>Welcome, {welcomeName}!</h2>
           <p>You have successfully logged in.</p>
           <button onClick={() => setShowWelcome(false)}>Continue</button>
         </div>
       ) : (
-        <>
-          <h1>{isLogin ? 'Login' : 'Register'}</h1>
-          <form onSubmit={handleSubmit}>
-            {!isLogin && (
-              <div className="input-group">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-                {validationErrors.name && (
-                  <div className="error-message">{validationErrors.name}</div>
-                )}
-              </div>
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="title">{isLogin ? 'Login' : 'Register'}</div>
+          
+          {!isLogin && (
+            <label>
+              <input
+                className="input"
+                type="text"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+              />
+              <span>Name</span>
+              <button type="button" className="info-icon" tabIndex="-1">
+                ℹ️
+                <span className="tooltip">{validationInfo.name}</span>
+              </button>
+              {validationErrors.name && (
+                <div className="error-message">{validationErrors.name}</div>
+              )}
+            </label>
+          )}
+
+          <label>
+            <input
+              className="input"
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+            />
+            <span>Email</span>
+            <button type="button" className="info-icon" tabIndex="-1">
+              ℹ️
+              <span className="tooltip">{validationInfo.email}</span>
+            </button>
+            {validationErrors.email && (
+              <div className="error-message">{validationErrors.email}</div>
             )}
-            <div className="input-group">
+          </label>
+
+          <label>
+            <input
+              className="input"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <span>Password</span>
+            <button type="button" className="info-icon" tabIndex="-1">
+              ℹ️
+              <span className="tooltip">{validationInfo.password}</span>
+            </button>
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+            {validationErrors.password && (
+              <div className="error-message">{validationErrors.password}</div>
+            )}
+          </label>
+
+          {!isLogin && (
+            <label>
               <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-              {validationErrors.email && (
-                <div className="error-message">{validationErrors.email}</div>
-              )}
-            </div>
-            <div className="input-group">
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              {validationErrors.password && (
-                <div className="error-message">{validationErrors.password}</div>
-              )}
-            </div>
-            {!isLogin && (
-              <input
+                className="input"
                 type="password"
                 name="confirmPassword"
-                placeholder="Confirm Password"
+                required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                required
               />
-            )}
-            {passwordError && (
-              <div className="error-message">{passwordError}</div>
-            )}
-            <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
-          </form>
-          {error && <div className="error-container">{error}</div>}
-          <p>
+              <span>Confirm Password</span>
+              {passwordError && (
+                <div className="error-message">{passwordError}</div>
+              )}
+            </label>
+          )}
+
+          <button className="submit" type="submit">
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+
+          <p className="signin">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button 
-              className="toggle-btn"
-              onClick={() => setIsLogin(!isLogin)}
-            >
+            <button type="button" onClick={() => setIsLogin(!isLogin)}>
               {isLogin ? 'Register' : 'Login'}
             </button>
           </p>
-        </>
+        </form>
       )}
     </div>
-  )
+  );
 }
 
 export default App
