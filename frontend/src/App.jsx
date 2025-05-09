@@ -296,6 +296,16 @@ function App() {
             </label>
           )}
 
+          {isLogin && (
+            <div className="remember-me">
+              <input 
+                type="checkbox" 
+                id="remember-me"
+              />
+              <label htmlFor="remember-me">Remember me</label>
+            </div>
+          )}
+
           <button className="submit" type="submit">
             {isLogin ? 'Login' : 'Register'}
           </button>

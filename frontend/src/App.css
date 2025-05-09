@@ -387,3 +387,117 @@ button:disabled:hover {
     transform: translateY(0);
   }
 }
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #00bfff;
+  cursor: pointer;
+}
+
+.remember-me label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Add responsive styles */
+@media screen and (max-width: 768px) {
+  .form {
+    width: 95%;
+    padding: 20px;
+    margin: 10px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .form label .input {
+    font-size: 0.9rem;
+  }
+
+  .info-icon {
+    right: -20px;
+  }
+
+  .tooltip {
+    width: 180px;
+    font-size: 11px;
+    right: 25px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .form {
+    width: 100%;
+    padding: 15px;
+    margin: 5px;
+    border-radius: 15px;
+  }
+
+  .title {
+    font-size: 20px;
+    padding-left: 25px;
+  }
+
+  .form label {
+    margin-right: 25px;
+  }
+
+  .info-icon {
+    right: -18px;
+    font-size: 10px;
+  }
+
+  .tooltip {
+    width: 160px;
+    right: 22px;
+  }
+
+  .registration-dialog,
+  .welcome-dialog {
+    width: 90%;
+    padding: 1.5rem;
+  }
+
+  .remember-me {
+    margin: 8px 0;
+  }
+
+  .remember-me label {
+    font-size: 12px;
+  }
+
+  .signin {
+    font-size: 13px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .form {
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .form label .input {
+    padding: 18px 12px 05px 12px;
+    font-size: 0.85rem;
+  }
+
+  .submit {
+    padding: 8px;
+    font-size: 14px;
+  }
+}
