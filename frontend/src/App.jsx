@@ -7,6 +7,7 @@ function App() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     name: ''
   })
   const [csrfToken, setCsrfToken] = useState('')
@@ -14,6 +15,40 @@ function App() {
   const [error, setError] = useState(null)
   const [showWelcome, setShowWelcome] = useState(false)
   const [welcomeName, setWelcomeName] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+
+  const validateName = (name) => {
+    if (name.length < 4) {
+      return 'Name must be at least 4 characters long';
+    }
+    return '';
+  };
+
+  const validatePassword = (password) => {
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    if (!/(?=.*[0-9])/.test(password)) {
+      return 'Password must contain at least one number';
+    }
+    if (!/(?=.*[a-zA-Z])/.test(password)) {
+      return 'Password must contain at least one letter';
+    }
+    return '';
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
 
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -41,14 +76,41 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setPasswordError('');
+
+    // Validate all fields before submission
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    let nameError = '';
+    
+    if (!isLogin) {
+      nameError = validateName(formData.name);
+      if (formData.password !== formData.confirmPassword) {
+        setPasswordError('Passwords do not match');
+        return;
+      }
+    }
+
+    if (emailError || passwordError || (!isLogin && nameError)) {
+      setValidationErrors({
+        email: emailError,
+        password: passwordError,
+        name: nameError
+      });
+      return;
+    }
+
     try {
         const endpoint = isLogin ? 'login' : 'register';
         console.log('Submitting form:', formData); // Debug log
 
+        // Remove confirmPassword before sending to API
+        const { confirmPassword, ...submitData } = formData;
+
         const response = await axios.post(
             `http://localhost/login%20and%20registration%20form/backend/api/${endpoint}.php`,
             {
-                ...formData,
+                ...submitData,
                 csrf_token: csrfToken // Add CSRF token to request body
             },
             { 
@@ -83,14 +145,35 @@ function App() {
 };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [name]: value
+    });
 
-  if (error) {
-    return <div className="error-container">{error}</div>
+    // Clear previous validation errors
+    setValidationErrors({
+      ...validationErrors,
+      [name]: ''
+    });
+
+    // Validate on change
+    if (name === 'name' && !isLogin) {
+      setValidationErrors(prev => ({
+        ...prev,
+        name: validateName(value)
+      }));
+    } else if (name === 'password') {
+      setValidationErrors(prev => ({
+        ...prev,
+        password: validatePassword(value)
+      }));
+    } else if (name === 'email') {
+      setValidationErrors(prev => ({
+        ...prev,
+        email: validateEmail(value)
+      }));
+    }
   }
 
   return (
@@ -106,33 +189,62 @@ function App() {
           <h1>{isLogin ? 'Login' : 'Register'}</h1>
           <form onSubmit={handleSubmit}>
             {!isLogin && (
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
+              <div className="input-group">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+                {validationErrors.name && (
+                  <div className="error-message">{validationErrors.name}</div>
+                )}
+              </div>
             )}
-            <input
-              type="email"
+            <div className="input-group">
+              <input
+                type="email"
                 name="email"
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+              />
+              {validationErrors.email && (
+                <div className="error-message">{validationErrors.email}</div>
+              )}
+            </div>
+            <div className="input-group">
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              {validationErrors.password && (
+                <div className="error-message">{validationErrors.password}</div>
+              )}
+            </div>
+            {!isLogin && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+            )}
+            {passwordError && (
+              <div className="error-message">{passwordError}</div>
+            )}
             <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
           </form>
+          {error && <div className="error-container">{error}</div>}
           <p>
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button 

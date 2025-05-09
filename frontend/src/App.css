@@ -100,3 +100,22 @@ button:disabled:hover {
 .welcome-dialog button:hover {
     background-color: #535bf2;
 }
+
+.error-message {
+    color: #ff4646;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    text-align: left;
+    padding-left: 0.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.input-group input {
+  margin: 0;
+}
