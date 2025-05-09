@@ -193,12 +193,13 @@ function App() {
           <button onClick={() => {
             setShowRegistrationSuccess(false);
             setIsLogin(true);
-            setFormData({
-              email: '',
-              password: '',
+            // Pre-fill only email and password, reset other fields
+            setFormData(prev => ({
+              ...prev,
               confirmPassword: '',
-              name: ''
-            });
+              name: '',
+              // Keep the registered email and password
+            }));
           }}>
             Proceed to Login
           </button>
