@@ -1,45 +1,58 @@
 <?php
 require_once '../utils/CorsMiddleware.php';
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Max-Age: 3600");
-header("X-XSS-Protection: 1; mode=block");
-header("Content-Security-Policy: default-src 'self'");
-
-include_once '../config/database.php';
-include_once '../classes/User.php';
+require_once '../config/database.php';
+require_once '../classes/User.php';
+require_once '../utils/Security.php';
 
 session_start();
 CorsMiddleware::handleCors();
 
-$database = new Database();
-$db = $database->getConnection();
-$user = new User($db);
+header("Content-Type: application/json; charset=UTF-8");
 
-$data = json_decode(file_get_contents("php://input"));
-
-if(
-    !empty($data->email) &&
-    !empty($data->password) &&
-    !empty($data->csrf_token) &&
-    Security::validateCSRFToken($data->csrf_token)
-){
-    $result = $user->login($data->email, $data->password);
-    if($result){
-        $_SESSION['user_id'] = $result['id'];
-        http_response_code(200);
-        echo json_encode(array(
-            "message" => "Login successful.",
-            "id" => $result['id'],
-            "email" => $result['email']
-        ));
-    } else {
-        http_response_code(401);
-        echo json_encode(array("message" => "Invalid credentials."));
+try {
+    $data = json_decode(file_get_contents("php://input"));
+    
+    // Debug logging
+    error_log("Login request received: " . json_encode($data));
+    
+    if (!isset($data->email) || !isset($data->password)) {
+        throw new Exception("Missing email or password");
     }
-} else {
-    http_response_code(400);
-    echo json_encode(array("message" => "Invalid input data."));
+
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    if (!$db) {
+        throw new Exception("Database connection failed");
+    }
+
+    $user = new User($db);
+    $result = $user->login($data->email, $data->password);
+    
+    // Make sure $result has the expected structure
+    if (isset($result) && is_array($result)) {
+        $_SESSION['user_id'] = $result['id'];
+        $_SESSION['user_name'] = $result['name']; // Store user's name
+        http_response_code(200);
+        echo json_encode([
+            "success" => true,
+            "message" => "Login successful",
+            "user" => [
+                "id" => $result['id'],
+                "name" => $result['name'],
+                "email" => $result['email']
+            ]
+        ]);
+    } else {
+        throw new Exception("Invalid credentials");
+    }
+
+} catch (Exception $e) {
+    error_log("Login error: " . $e->getMessage());
+    http_response_code(401);
+    echo json_encode([
+        "success" => false,
+        "message" => $e->getMessage()
+    ]);
 }
 ?>

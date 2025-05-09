@@ -1,40 +1,56 @@
 <?php
 require_once '../utils/CorsMiddleware.php';
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Max-Age: 3600");
-header("X-XSS-Protection: 1; mode=block");
-header("Content-Security-Policy: default-src 'self'");
-
-include_once '../config/database.php';
-include_once '../classes/User.php';
+require_once '../config/database.php';
+require_once '../classes/User.php';
+require_once '../utils/Security.php';
 
 session_start();
 CorsMiddleware::handleCors();
 
-$database = new Database();
-$db = $database->getConnection();
-$user = new User($db);
+header("Content-Type: application/json; charset=UTF-8");
 
-$data = json_decode(file_get_contents("php://input"));
-
-if(
-    !empty($data->email) &&
-    !empty($data->password) &&
-    !empty($data->name) &&
-    !empty($data->csrf_token) &&
-    Security::validateCSRFToken($data->csrf_token)
-){
-    if($user->register($data->email, $data->password, $data->name)){
-        http_response_code(200);
-        echo json_encode(array("message" => "User registered successfully."));
-    } else {
-        http_response_code(400);
-        echo json_encode(array("message" => "Unable to register user."));
+try {
+    $data = json_decode(file_get_contents("php://input"));
+    
+    // Debug logging
+    error_log("Registration data received: " . json_encode($data));
+    
+    // Validate required fields
+    if (!isset($data->email) || !isset($data->password) || !isset($data->name)) {
+        throw new Exception("Missing required fields");
     }
-} else {
+
+    // Validate email format
+    if (!filter_var($data->email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format");
+    }
+
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    if (!$db) {
+        throw new Exception("Database connection failed");
+    }
+
+    $user = new User($db);
+    $result = $user->register($data->email, $data->password, $data->name);
+    
+    if ($result) {
+        http_response_code(201);
+        echo json_encode([
+            "success" => true,
+            "message" => "Registration successful"
+        ]);
+    } else {
+        throw new Exception("Registration failed");
+    }
+
+} catch (Exception $e) {
+    error_log("Registration error: " . $e->getMessage());
     http_response_code(400);
-    echo json_encode(array("message" => "Invalid input data."));
+    echo json_encode([
+        "success" => false,
+        "message" => $e->getMessage()
+    ]);
 }
 ?>
