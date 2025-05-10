@@ -10,8 +10,28 @@ class User {
         $this->conn = $db;
     }
 
+    public function validateRequest($requestToken) {
+        // Get tokens from different sources
+        $sessionToken = $_SESSION['csrf_token'] ?? null;
+        $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        
+        // Validate all three tokens match
+        if (!$sessionToken || !$headerToken || !$requestToken || 
+            !hash_equals($sessionToken, $headerToken) || 
+            !hash_equals($sessionToken, $requestToken)) {
+            error_log("CSRF token validation failed");
+            throw new Exception("Invalid security token");
+        }
+        
+        return true;
+    }
+
     public function register($email, $password, $name) {
         try {
+            // Add CSRF validation at the start of register
+            $data = json_decode(file_get_contents("php://input"));
+            $this->validateRequest($data->csrf_token);
+
             // Debug logging
             error_log("Starting registration for email: " . $email);
 
@@ -55,6 +75,10 @@ class User {
 
     public function login($email, $password) {
         try {
+            // Add CSRF validation at the start of login
+            $data = json_decode(file_get_contents("php://input"));
+            $this->validateRequest($data->csrf_token);
+
             $email = Security::sanitizeInput($email);
             
             $query = "SELECT id, email, password, name FROM " . $this->table_name . " WHERE email = :email";

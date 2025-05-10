@@ -1,10 +1,10 @@
 <?php
+session_start();
 require_once '../utils/CorsMiddleware.php';
 require_once '../config/database.php';
 require_once '../classes/User.php';
 require_once '../utils/Security.php';
 
-session_start();
 CorsMiddleware::handleCors();
 
 header("Content-Type: application/json; charset=UTF-8");
@@ -12,11 +12,24 @@ header("Content-Type: application/json; charset=UTF-8");
 try {
     $data = json_decode(file_get_contents("php://input"));
     
+    // Add cookie token validation
+    $cookieToken = $_COOKIE['CSRF-Token'] ?? null;
+    $sessionToken = $_SESSION['csrf_token'] ?? null;
+    $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+    
+    if (!$cookieToken || !$sessionToken || !$headerToken || !$data->csrf_token || 
+        !hash_equals($cookieToken, $sessionToken) || 
+        !hash_equals($cookieToken, $headerToken) || 
+        !hash_equals($cookieToken, $data->csrf_token)) {
+        error_log("CSRF token validation failed");
+        throw new Exception("Invalid security token");
+    }
+    
     // Debug logging
     error_log("Login request received: " . json_encode($data));
     
-    if (!isset($data->email) || !isset($data->password)) {
-        throw new Exception("Missing email or password");
+    if (!isset($data->email) || !isset($data->password) || !isset($data->csrf_token)) {
+        throw new Exception("Missing required fields");
     }
 
     $database = new Database();
@@ -27,6 +40,7 @@ try {
     }
 
     $user = new User($db);
+    // validateRequest will be called inside login method
     $result = $user->login($data->email, $data->password);
     
     // Make sure $result has the expected structure

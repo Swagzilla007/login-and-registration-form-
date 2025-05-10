@@ -12,6 +12,22 @@ header("Content-Type: application/json; charset=UTF-8");
 try {
     $data = json_decode(file_get_contents("php://input"));
     
+    // Add CSRF validation before processing registration
+    if (!isset($data->csrf_token)) {
+        throw new Exception("Missing security token");
+    }
+
+    // Validate CSRF token
+    $sessionToken = $_SESSION['csrf_token'] ?? null;
+    $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+    
+    if (!$sessionToken || !$headerToken || !$data->csrf_token || 
+        !hash_equals($sessionToken, $headerToken) || 
+        !hash_equals($sessionToken, $data->csrf_token)) {
+        error_log("CSRF token validation failed");
+        throw new Exception("Invalid security token");
+    }
+    
     // Debug logging
     error_log("Registration data received: " . json_encode($data));
     
