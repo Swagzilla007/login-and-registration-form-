@@ -30,17 +30,18 @@ class User {
 
     public function register($email, $password, $name) {
         try {
-            // Add CSRF validation at the start of register
+            // CSRF validation
             $data = json_decode(file_get_contents("php://input"));
             $this->validateRequest($data->csrf_token);
+
+            
+            $email = Security::sanitizeInput($email);
+            $name = Security::sanitizeInput($name);
+            
 
             // Debug logging
             error_log("Starting registration for email: " . $email);
 
-            // Sanitize inputs before checking
-            $email = Security::sanitizeInput($email);
-            $name = Security::sanitizeInput($name);
-            
             // Check if email already exists
             $check_query = "SELECT id FROM " . $this->table_name . " WHERE email = :email";
             $check_stmt = $this->conn->prepare($check_query);
@@ -77,12 +78,14 @@ class User {
 
     public function login($email, $password) {
         try {
-            // Add CSRF validation at the start of login
+            // CSRF validation
             $data = json_decode(file_get_contents("php://input"));
             $this->validateRequest($data->csrf_token);
 
+            
             $email = Security::sanitizeInput($email);
             
+
             $query = "SELECT id, email, password, name FROM " . $this->table_name . " WHERE email = :email";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(":email", $email);
