@@ -4,7 +4,11 @@ import './App.css'
 
 function App() {
   const [isLogin, setIsLogin] = useState(true)
-  const [formData, setFormData] = useState({
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: '',
+  })
+  const [registerData, setRegisterData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
@@ -23,6 +27,12 @@ function App() {
   });
   const [showPassword, setShowPassword] = useState(false)
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
+
+  // Add new state for captcha
+  const [captcha, setCaptcha] = useState({
+    code: '',
+    userInput: ''
+  });
 
   const validateName = (name) => {
     if (name.length < 4) {
@@ -59,6 +69,16 @@ function App() {
     password: "Password must:\n- Be at least 6 characters long\n- Contain at least one number\n- Contain at least one letter"
   };
 
+  // Add captcha generation function
+  const generateCaptcha = () => {
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    setCaptcha(prev => ({ ...prev, code: result }));
+  };
+
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
@@ -80,6 +100,7 @@ function App() {
       }
     }
     fetchCsrfToken()
+    generateCaptcha();
   }, [])
 
   const handleSubmit = async (e) => {
@@ -87,14 +108,24 @@ function App() {
     setError(null);
     setPasswordError('');
 
+    const currentData = isLogin ? loginData : registerData;
+
+    // Move captcha check to register form
+    if (!isLogin && captcha.userInput.toLowerCase() !== captcha.code.toLowerCase()) {
+      setError('Invalid captcha code');
+      generateCaptcha();
+      setCaptcha(prev => ({ ...prev, userInput: '' }));
+      return;
+    }
+
     // Validate all fields before submission
-    const emailError = validateEmail(formData.email);
-    const passwordError = validatePassword(formData.password);
+    const emailError = validateEmail(currentData.email);
+    const passwordError = validatePassword(currentData.password);
     let nameError = '';
     
     if (!isLogin) {
-      nameError = validateName(formData.name);
-      if (formData.password !== formData.confirmPassword) {
+      nameError = validateName(currentData.name);
+      if (currentData.password !== currentData.confirmPassword) {
         setPasswordError('Passwords do not match');
         return;
       }
@@ -111,10 +142,10 @@ function App() {
 
     try {
         const endpoint = isLogin ? 'login' : 'register';
-        console.log('Submitting form:', formData); // Debug log
+        console.log('Submitting form:', currentData); // Debug log
 
         // Remove confirmPassword before sending to API
-        const { confirmPassword, ...submitData } = formData;
+        const { confirmPassword, ...submitData } = currentData;
 
         const response = await axios.post(
             `http://localhost/login%20and%20registration%20form/backend/api/${endpoint}.php`,
@@ -138,6 +169,11 @@ function App() {
                 setWelcomeName(response.data.user.name);
                 setShowWelcome(true);
             } else {
+                // After successful registration, pre-fill login form
+                setLoginData({
+                  email: registerData.email,
+                  password: registerData.password
+                });
                 setShowRegistrationSuccess(true); // Show registration success dialog
             }
         } else {
@@ -154,10 +190,17 @@ function App() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    if (isLogin) {
+      setLoginData({
+        ...loginData,
+        [name]: value
+      });
+    } else {
+      setRegisterData({
+        ...registerData,
+        [name]: value
+      });
+    }
 
     // Clear previous validation errors
     setValidationErrors({
@@ -184,6 +227,22 @@ function App() {
     }
   }
 
+  // Add captcha input handler
+  const handleCaptchaInput = (e) => {
+    setCaptcha(prev => ({ ...prev, userInput: e.target.value }));
+  };
+
+  // Update form toggle to clear appropriate form
+  const toggleForm = () => {
+    setIsLogin(!isLogin);
+    setValidationErrors({
+      name: '',
+      email: '',
+      password: ''
+    });
+    setPasswordError('');
+  };
+
   return (
     <div className="auth-container">
       {showRegistrationSuccess ? (
@@ -194,7 +253,7 @@ function App() {
             setShowRegistrationSuccess(false);
             setIsLogin(true);
             // Pre-fill only email and password, reset other fields
-            setFormData(prev => ({
+            setRegisterData(prev => ({
               ...prev,
               confirmPassword: '',
               name: '',
@@ -221,7 +280,7 @@ function App() {
                 type="text"
                 name="name"
                 required
-                value={formData.name}
+                value={registerData.name}
                 onChange={handleChange}
               />
               <span>Name</span>
@@ -241,7 +300,7 @@ function App() {
               type="email"
               name="email"
               required
-              value={formData.email}
+              value={isLogin ? loginData.email : registerData.email}
               onChange={handleChange}
             />
             <span>Email</span>
@@ -260,7 +319,7 @@ function App() {
               type={showPassword ? "text" : "password"}
               name="password"
               required
-              value={formData.password}
+              value={isLogin ? loginData.password : registerData.password}
               onChange={handleChange}
             />
             <span>Password</span>
@@ -281,20 +340,41 @@ function App() {
           </label>
 
           {!isLogin && (
-            <label>
+            <>
+              <label>
+                <input
+                  className="input"
+                  type="password"
+                  name="confirmPassword"
+                  required
+                  value={registerData.confirmPassword}
+                  onChange={handleChange}
+                />
+                <span>Confirm Password</span>
+                {passwordError && (
+                  <div className="error-message">{passwordError}</div>
+                )}
+              </label>
+
+              <div className="captcha-container">
+                <div className="captcha-code">{captcha.code}</div>
+                <button 
+                  type="button" 
+                  className="refresh-captcha" 
+                  onClick={generateCaptcha}
+                >
+                  🔄
+                </button>
+              </div>
               <input
-                className="input"
-                type="password"
-                name="confirmPassword"
+                className="captcha-input"
+                type="text"
+                placeholder="Enter captcha code"
+                value={captcha.userInput}
+                onChange={handleCaptchaInput}
                 required
-                value={formData.confirmPassword}
-                onChange={handleChange}
               />
-              <span>Confirm Password</span>
-              {passwordError && (
-                <div className="error-message">{passwordError}</div>
-              )}
-            </label>
+            </>
           )}
 
           {isLogin && (
@@ -313,7 +393,7 @@ function App() {
 
           <p className="signin">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button type="button" onClick={() => setIsLogin(!isLogin)}>
+            <button type="button" onClick={toggleForm}>
               {isLogin ? 'Register' : 'Login'}
             </button>
           </p>
