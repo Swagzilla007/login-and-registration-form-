@@ -8,7 +8,10 @@ const Login = ({
   setShowPassword,
   validationInfo,
   validationErrors,
-  toggleForm
+  toggleForm,
+  lockoutTimer,
+  attemptsLeft,
+  isSubmitted
 }) => {
   return (
     <form className="form" onSubmit={handleSubmit}>
@@ -54,9 +57,6 @@ const Login = ({
         >
           {showPassword ? "👁️" : "👁️‍🗨️"}
         </button>
-        {validationErrors.password && (
-          <div className="error-message">{validationErrors.password}</div>
-        )}
       </label>
 
       <div className="remember-me">
@@ -67,7 +67,23 @@ const Login = ({
         <label htmlFor="remember-me">Remember me</label>
       </div>
 
-      <button className="submit" type="submit">Login</button>
+      {isSubmitted && validationErrors.password && (
+        <div className="error-container">
+          <div className="error-message">
+            Invalid password - {attemptsLeft} {attemptsLeft === 1 ? 'attempt' : 'attempts'} remaining
+          </div>
+        </div>
+      )}
+
+      <button 
+        className="submit" 
+        type="submit"
+        disabled={lockoutTimer !== null}
+      >
+        {lockoutTimer 
+          ? `Wait ${lockoutTimer}s to try again` 
+          : 'Login'}
+      </button>
 
       <p className="signin">
         Don't have an account?{" "}

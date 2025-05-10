@@ -36,6 +36,13 @@ function App() {
     userInput: ''
   });
 
+  // Add new states for attempt tracking
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockoutTimer, setLockoutTimer] = useState(null);
+
+  // Add new state for tracking submission
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const validateName = (name) => {
     if (name.length < 4) {
       return 'Name must be at least 4 characters long';
@@ -107,86 +114,75 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setPasswordError('');
-
-    const currentData = isLogin ? loginData : registerData;
-
-    // Move captcha check to register form
-    if (!isLogin && captcha.userInput.toLowerCase() !== captcha.code.toLowerCase()) {
-      setError('Invalid captcha code');
-      generateCaptcha();
-      setCaptcha(prev => ({ ...prev, userInput: '' }));
-      return;
-    }
-
-    // Validate all fields before submission
-    const emailError = validateEmail(currentData.email);
-    const passwordError = validatePassword(currentData.password);
-    let nameError = '';
+    setIsSubmitted(true);
     
-    if (!isLogin) {
-      nameError = validateName(currentData.name);
-      if (currentData.password !== currentData.confirmPassword) {
-        setPasswordError('Passwords do not match');
-        return;
-      }
-    }
-
-    if (emailError || passwordError || (!isLogin && nameError)) {
-      setValidationErrors({
-        email: emailError,
-        password: passwordError,
-        name: nameError
-      });
-      return;
-    }
-
     try {
         const endpoint = isLogin ? 'login' : 'register';
-        console.log('Submitting form:', currentData); // Debug log
-
-        // Remove confirmPassword before sending to API
-        const { confirmPassword, ...submitData } = currentData;
+        const submitData = isLogin ? loginData : registerData;
 
         const response = await axios.post(
             `http://localhost/login%20and%20registration%20form/backend/api/${endpoint}.php`,
             {
                 ...submitData,
-                csrf_token: csrfToken // Add CSRF token to request body
+                csrf_token: csrfToken
             },
             { 
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken // Add CSRF token to headers
+                    'X-CSRF-Token': csrfToken
                 }
             }
         );
-        
-        console.log('Response:', response.data); // Debug log
-        
+
         if (response.data.success) {
+            // Clear errors and reset states on successful login
+            setValidationErrors({
+                name: '',
+                email: '',
+                password: ''
+            });
+            setIsSubmitted(false);
+            setLoginAttempts(0);
+            
             if (isLogin) {
-                setWelcomeName(response.data.user.name);
                 setShowWelcome(true);
+                setWelcomeName(response.data.user.name);
             } else {
-                // After successful registration, pre-fill login form
-                setLoginData({
-                  email: registerData.email,
-                  password: registerData.password
-                });
-                setShowRegistrationSuccess(true); // Show registration success dialog
+                setShowRegistrationSuccess(true);
             }
-        } else {
-            setError(response.data.message);
         }
     } catch (error) {
-        console.error('Error details:', error.response || error); // Debug log
-        setError(
-            error.response?.data?.message || 
-            `${isLogin ? 'Login' : 'Registration'} failed. Please try again.`
-        );
+        console.log('Login error:', error);
+        
+        if (isLogin) {
+            const newAttempts = loginAttempts + 1;
+            setLoginAttempts(newAttempts);
+            
+            setValidationErrors(prev => ({
+                ...prev,
+                password: 'Invalid password'
+            }));
+
+            if (newAttempts >= 3) {
+                setLockoutTimer(30);
+                const timer = setInterval(() => {
+                    setLockoutTimer(prev => {
+                        if (prev <= 1) {
+                            clearInterval(timer);
+                            setLoginAttempts(0);
+                            setValidationErrors(prev => ({
+                                ...prev,
+                                password: ''
+                            }));
+                            setIsSubmitted(false);
+                            return null;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            }
+        }
     }
 };
 
@@ -283,6 +279,9 @@ function App() {
               validationInfo={validationInfo}
               validationErrors={validationErrors}
               toggleForm={toggleForm}
+              lockoutTimer={lockoutTimer}
+              attemptsLeft={3 - loginAttempts}
+              isSubmitted={isSubmitted}
             />
           ) : (
             <Register

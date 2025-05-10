@@ -56,11 +56,12 @@ button:hover {
 .error-container {
   max-width: 400px;
   margin: 0 auto;
-  padding: 1rem;
-  border-radius: 4px;
-  background-color: #ff46461a;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: rgba(255, 70, 70, 0.1);
   color: #ff4646;
   text-align: center;
+  margin-top: 8px;
 }
 
 button:disabled {
@@ -106,10 +107,11 @@ button:disabled:hover {
 
 .error-message {
     color: #ff4646;
-    font-size: 0.75rem;
+    font-size: 0.85em;
     margin-top: 0.25rem;
     text-align: left;
     padding-left: 0.5rem;
+    margin-bottom: 2px;
 }
 
 .input-group {
@@ -261,9 +263,10 @@ button:disabled:hover {
 
 .error-message {
   color: #ff4646;
-  font-size: 0.75rem;
+  font-size: 0.85em;
   margin-top: 0.25rem;
   padding-left: 10px;
+  margin-bottom: 2px;
 }
 
 @keyframes pulse {
@@ -460,6 +463,12 @@ button:disabled:hover {
   background: #333;
   border: 1px solid rgba(105, 105, 105, 0.397);
   color: white;
+}
+
+.attempts-warning {
+  color: #ff6b6b;
+  font-size: 0.85em;
+  font-weight: 500;
 }
 
 /* Add responsive styles */
