@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import Login from './components/Login'
+import Register from './components/Register'
 import './App.css'
 
 function App() {
@@ -270,137 +272,38 @@ function App() {
           <button onClick={() => setShowWelcome(false)}>Continue</button>
         </div>
       ) : (
-        <form className="form" onSubmit={handleSubmit}>
-          <div className="title">{isLogin ? 'Login' : 'Register'}</div>
-          
-          {!isLogin && (
-            <label>
-              <input
-                className="input"
-                type="text"
-                name="name"
-                required
-                value={registerData.name}
-                onChange={handleChange}
-              />
-              <span>Name</span>
-              <button type="button" className="info-icon" tabIndex="-1">
-                ℹ️
-                <span className="tooltip">{validationInfo.name}</span>
-              </button>
-              {validationErrors.name && (
-                <div className="error-message">{validationErrors.name}</div>
-              )}
-            </label>
-          )}
-
-          <label>
-            <input
-              className="input"
-              type="email"
-              name="email"
-              required
-              value={isLogin ? loginData.email : registerData.email}
-              onChange={handleChange}
+        <>
+          {isLogin ? (
+            <Login
+              loginData={loginData}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              validationInfo={validationInfo}
+              validationErrors={validationErrors}
+              toggleForm={toggleForm}
             />
-            <span>Email</span>
-            <button type="button" className="info-icon" tabIndex="-1">
-              ℹ️
-              <span className="tooltip">{validationInfo.email}</span>
-            </button>
-            {validationErrors.email && (
-              <div className="error-message">{validationErrors.email}</div>
-            )}
-          </label>
-
-          <label>
-            <input
-              className="input"
-              type={showPassword ? "text" : "password"}
-              name="password"
-              required
-              value={isLogin ? loginData.password : registerData.password}
-              onChange={handleChange}
+          ) : (
+            <Register
+              registerData={registerData}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              validationInfo={validationInfo}
+              validationErrors={validationErrors}
+              passwordError={passwordError}
+              captcha={captcha}
+              handleCaptchaInput={handleCaptchaInput}
+              generateCaptcha={generateCaptcha}
+              toggleForm={toggleForm}
             />
-            <span>Password</span>
-            <button type="button" className="info-icon" tabIndex="-1">
-              ℹ️
-              <span className="tooltip">{validationInfo.password}</span>
-            </button>
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "👁️" : "👁️‍🗨️"}
-            </button>
-            {validationErrors.password && (
-              <div className="error-message">{validationErrors.password}</div>
-            )}
-          </label>
-
-          {!isLogin && (
-            <>
-              <label>
-                <input
-                  className="input"
-                  type="password"
-                  name="confirmPassword"
-                  required
-                  value={registerData.confirmPassword}
-                  onChange={handleChange}
-                />
-                <span>Confirm Password</span>
-                {passwordError && (
-                  <div className="error-message">{passwordError}</div>
-                )}
-              </label>
-
-              <div className="captcha-container">
-                <div className="captcha-code">{captcha.code}</div>
-                <button 
-                  type="button" 
-                  className="refresh-captcha" 
-                  onClick={generateCaptcha}
-                >
-                  🔄
-                </button>
-              </div>
-              <input
-                className="captcha-input"
-                type="text"
-                placeholder="Enter captcha code"
-                value={captcha.userInput}
-                onChange={handleCaptchaInput}
-                required
-              />
-            </>
           )}
-
-          {isLogin && (
-            <div className="remember-me">
-              <input 
-                type="checkbox" 
-                id="remember-me"
-              />
-              <label htmlFor="remember-me">Remember me</label>
-            </div>
-          )}
-
-          <button className="submit" type="submit">
-            {isLogin ? 'Login' : 'Register'}
-          </button>
-
-          <p className="signin">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button type="button" onClick={toggleForm}>
-              {isLogin ? 'Register' : 'Login'}
-            </button>
-          </p>
-        </form>
+        </>
       )}
     </div>
   );
 }
 
-export default App
+export default App;
