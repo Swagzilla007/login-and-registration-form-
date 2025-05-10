@@ -11,14 +11,16 @@ class User {
     }
 
     public function validateRequest($requestToken) {
-        // Get tokens from different sources
+        // Get all three tokens
+        $cookieToken = $_COOKIE['CSRF-Token'] ?? null;
         $sessionToken = $_SESSION['csrf_token'] ?? null;
         $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
         
-        // Validate all three tokens match
-        if (!$sessionToken || !$headerToken || !$requestToken || 
-            !hash_equals($sessionToken, $headerToken) || 
-            !hash_equals($sessionToken, $requestToken)) {
+        // Validate all tokens match
+        if (!$cookieToken || !$sessionToken || !$headerToken || !$requestToken || 
+            !hash_equals($cookieToken, $sessionToken) || 
+            !hash_equals($cookieToken, $headerToken) || 
+            !hash_equals($cookieToken, $requestToken)) {
             error_log("CSRF token validation failed");
             throw new Exception("Invalid security token");
         }
