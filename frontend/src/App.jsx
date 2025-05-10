@@ -153,7 +153,7 @@ function App() {
             }
         }
     } catch (error) {
-        console.log('Login error:', error);
+        console.log('Error:', error);
         
         if (isLogin) {
             const newAttempts = loginAttempts + 1;
@@ -181,6 +181,20 @@ function App() {
                         return prev - 1;
                     });
                 }, 1000);
+            }
+        } else {
+            // Handle registration errors
+            if (error.response?.data?.message?.includes('email already exists') || 
+                error.response?.data?.message?.includes('already in use')) {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    email: 'This email is already registered'
+                }));
+            } else {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    email: error.response?.data?.message || 'Registration failed'
+                }));
             }
         }
     }
