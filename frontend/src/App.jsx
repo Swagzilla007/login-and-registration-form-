@@ -117,6 +117,12 @@ function App() {
     setIsSubmitted(true);
     
     try {
+        // Add captcha validation for registration
+        if (!isLogin && captcha.userInput !== captcha.code) {
+            alert('Invalid captcha code! Please try again.');  
+            return; // Stop form submission
+        }
+
         const endpoint = isLogin ? 'login' : 'register';
         const submitData = isLogin ? loginData : registerData;
 
